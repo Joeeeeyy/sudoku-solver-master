@@ -1,231 +1,318 @@
-const chai = require('chai');
+const chai = require("chai");
 const chaiHttp = require('chai-http');
 const assert = chai.assert;
 const server = require('../server');
+const {
+    puzzlesAndSolutions
+} = require('../controllers/puzzle-strings');
 
 chai.use(chaiHttp);
 
-// Solve a puzzle with valid puzzle string: POST request to /api/solve
-// Solve a puzzle with missing puzzle string: POST request to /api/solve
-// Solve a puzzle with invalid characters: POST request to /api/solve
-// Solve a puzzle with incorrect length: POST request to /api/solve
-// Solve a puzzle that cannot be solved: POST request to /api/solve
-// Check a puzzle placement with all fields: POST request to /api/check
+let validPuzzle = puzzlesAndSolutions[1][0];
 
-let validPuzzle =
-    '1.5..2.84..63.12.7.2..5.....9..1....8.2.3674.3.7.2..9.47...8..1..16....926914.37.';
 suite('Functional Tests', () => {
-    test('Solve a puzzle with valid puzzle string: POST request to /api/solve', function (done) {
+
+
+    //Functional Test #1-Solve a puzzle with valid puzzle string: POST request to /api/solve
+    test('#1-Solve a puzzle with valid puzzle string: POST request to /api/solve', (done) => {
         chai
             .request(server)
             .post('/api/solve')
             .send({
                 puzzle: validPuzzle
             })
-            .end(function (err, res) {
+            .end((err, res) => {
                 assert.equal(res.status, 200);
-                let complete =
-                    '135762984946381257728459613694517832812936745357824196473298561581673429269145378';
-                assert.equal(res.body.solution, complete);
+                assert.isObject(res.body);
+                assert.property(res.body, 'solution');
+                let solvedPuzzle = puzzlesAndSolutions[1][1];
+                assert.equal(res.body.solution, solvedPuzzle);
                 done();
-            });
-    });
+            })
+    })
 
-    test('Solve a puzzle with missing puzzle string: POST request to /api/solve', function (done) {
+    //Functional Test #2-Solve a puzzle with missing puzzle string: POST request to /api/solve
+
+    test('#2-Solve a puzzle with missing puzzle string: POST request to /api/solve', (done) => {
         chai
             .request(server)
             .post('/api/solve')
             .send({})
-            .end(function (err, res) {
+            .end((err, res) => {
                 assert.equal(res.status, 200);
-                assert.equal(res.body.error, 'Required field missing');
+                assert.equal(res.body.error, "Required field missing");
                 done();
-            });
-    });
+            })
+    })
+    //Functional Test #3-Solve a puzzle with invalid characters: POST request to /api/solve
 
-    test('Solve a puzzle with invalid characters: POST request to /api/solve', function (done) {
+    test('#3-Solve a puzzle with invalid characters: POST request to /api/solve', (done) => {
         chai
             .request(server)
             .post('/api/solve')
             .send({
-                puzzle: '1.5..2.84..63.12.7.2..5..h..9..1....8.2.3674.3.7.2..9.47...8..1..16....926914.37.',
+                puzzle: validPuzzle.replace(9, 'a')
             })
-            .end(function (err, res) {
+            .end((err, res) => {
                 assert.equal(res.status, 200);
+                assert.isObject(res.body);
+                assert.property(res.body, 'error');
+                let solvedPuzzle = puzzlesAndSolutions[1][1];
+                //   assert.equal(res.body.solution, solvedPuzzle);
                 assert.equal(res.body.error, 'Invalid characters in puzzle');
                 done();
-            });
-    });
+            })
+    })
 
-    test('Solve a puzzle with incorrect length: POST request to /api/solve', function (done) {
+    //Functional Test #4-Solve a puzzle with incorrect length: POST request to /api/solve
+
+    test('#4-Solve a puzzle with incorrect length: POST request to /api/solv', (done) => {
         chai
             .request(server)
             .post('/api/solve')
             .send({
-                puzzle: '1.5..2.84..63.12.7.2..5...9..1....8.2.3674.3.7.2..9.47...8..1..16....926914.37.',
+                puzzle: validPuzzle.slice(77)
             })
-            .end(function (err, res) {
+            .end((err, res) => {
                 assert.equal(res.status, 200);
-                assert.equal(
-                    res.body.error,
-                    'Expected puzzle to be 81 characters long'
-                );
+                assert.isObject(res.body);
+                assert.property(res.body, 'error');
+                assert.equal(res.body.error, 'Expected puzzle to be 81 characters long');
                 done();
-            });
-    });
+            })
+    })
 
-    test('Solve a puzzle that cannot be solved: POST request to /api/solve', function (done) {
+
+    //Functional Test #5-Solve a puzzle that cannot be solved: POST request to /api/solve
+
+    test('#5-Solve a puzzle that cannot be solved: POST request to /api/solve', (done) => {
         chai
             .request(server)
             .post('/api/solve')
             .send({
-                puzzle: '115..2.84..63.12.7.2..5.....9..1....8.2.3674.3.7.2..9.47...8..1..16....926914.37.',
+                puzzle: '828.4..6...16..89...98315.749.157.............53..4...96.415..81..7632..3...28.51'
             })
-            .end(function (err, res) {
+            .end((err, res) => {
                 assert.equal(res.status, 200);
+                assert.isObject(res.body);
+                assert.property(res.body, 'error');
                 assert.equal(res.body.error, 'Puzzle cannot be solved');
                 done();
-            });
-    });
-    test('Check a puzzle placement with all fields: POST request to /api/check', function (done) {
+            })
+    })
+
+    //Functional Test #6-Check a puzzle placement with all fields: POST request to /api/check
+
+    test('#6-Check a puzzle placement with all fields: POST request to /api/check', (done) => {
         chai
             .request(server)
             .post('/api/check')
             .send({
                 puzzle: validPuzzle,
-                coordinate: 'A2',
-                value: '3'
+                coordinate: 'A4',
+                value: '9'
             })
-            .end(function (err, res) {
+            .end((err, res) => {
                 assert.equal(res.status, 200);
+                assert.isObject(res.body);
+                //  assert.property(res.body, 'error');
                 assert.equal(res.body.valid, true);
                 done();
-            });
-    });
+            })
+    })
 
-    test('Check a puzzle placement with single placement conflict: POST request to /api/check', function (done) {
+
+    //Functional Test #7-Check a puzzle placement with single placement conflict: POST request to /api/check
+
+    test('#7-Check a puzzle placement with single placement conflict: POST request to /api/check', (done) => {
         chai
             .request(server)
             .post('/api/check')
             .send({
                 puzzle: validPuzzle,
-                coordinate: 'A2',
-                value: '8'
+                coordinate: 'B2',
+                value: '2'
             })
-            .end(function (err, res) {
+            .end((err, res) => {
                 assert.equal(res.status, 200);
+                assert.isObject(res.body);
                 assert.equal(res.body.valid, false);
                 assert.equal(res.body.conflict.length, 1);
                 done();
-            });
-    });
-    test('Check a puzzle placement with multiple placement conflicts: POST request to /api/check', function (done) {
+            })
+    })
+
+
+    //Functional Test #8-Check a puzzle placement with multiple placement conflicts: POST request to /api/check
+
+    test('#8-Check a puzzle placement with multiple placement conflicts: POST request to /api/check', (done) => {
         chai
             .request(server)
             .post('/api/check')
             .send({
                 puzzle: validPuzzle,
-                coordinate: 'A2',
-                value: '6'
+                coordinate: 'B2',
+                value: '3'
             })
-            .end(function (err, res) {
+            .end((err, res) => {
                 assert.equal(res.status, 200);
+                assert.isObject(res.body);
+                assert.property(res.body, 'valid');
                 assert.equal(res.body.valid, false);
+                assert.isArray(res.body.conflict);
+                assert.isAbove(res.body.conflict.length, 1);
                 assert.equal(res.body.conflict.length, 2);
                 done();
-            });
-    });
-    test('Check a puzzle placement with all placement conflicts: POST request to /api/check', function (done) {
+            })
+    })
+
+
+    //Functional Test #9-Check a puzzle placement with all placement conflicts: POST request to /api/check
+
+    test('#9-Check a puzzle placement with all placement conflicts: POST request to /api/check', (done) => {
         chai
             .request(server)
             .post('/api/check')
             .send({
                 puzzle: validPuzzle,
-                coordinate: 'A2',
-                value: '2'
+                coordinate: 'B2',
+                value: '5'
             })
-            .end(function (err, res) {
+            .end((err, res) => {
                 assert.equal(res.status, 200);
+                assert.isObject(res.body);
+                assert.property(res.body, 'valid');
                 assert.equal(res.body.valid, false);
+                assert.isArray(res.body.conflict);
+                assert.isAbove(res.body.conflict.length, 1);
                 assert.equal(res.body.conflict.length, 3);
                 done();
-            });
-    });
-    test('Check a puzzle placement with missing required fields: POST request to /api/check', function (done) {
+            })
+
+
+    })
+
+
+    //Functional Test #10-Check a puzzle placement with missing required fields: POST request to /api/check
+
+
+    test('#10-Check a puzzle placement with missing required fields: POST request to /api/check', (done) => {
         chai
             .request(server)
             .post('/api/check')
             .send({
                 puzzle: validPuzzle,
-                value: '3'
+                coordinate: 'B2',
+                value: ''
             })
-            .end(function (err, res) {
+            .end((err, res) => {
                 assert.equal(res.status, 200);
-                assert.equal(res.body.error, 'Required field(s) missing');
+                assert.isObject(res.body);
+                //      assert.property(res.body, 'valid');
+                //      assert.equal(res.body.valid, false);
+                //      assert.isArray(res.body.conflict);
+                //    assert.isAbove(res.body.conflict.length, 1);
+                assert.equal(res.body.error, "Required field(s) missing");
                 done();
-            });
-    });
-    test('Check a puzzle placement with invalid characters: POST request to /api/check', function (done) {
+            })
+    })
+
+
+    //Functional Test #11-Check a puzzle placement with invalid characters: POST request to /api/check
+
+    test('#11-Check a puzzle placement with invalid characters: POST request to /api/check', (done) => {
         chai
             .request(server)
             .post('/api/check')
             .send({
-                puzzle: '1.5..2.84..63.12.7.2..5..h..9..1....8.2.3674.3.7.2..9.47...8..1..16....926914.37.',
-                coordinate: 'A2',
-                value: '3',
+                puzzle: validPuzzle.replace(1, 'x'),
+                coordinate: 'B2',
+                value: '1'
             })
-            .end(function (err, res) {
+            .end((err, res) => {
                 assert.equal(res.status, 200);
-                assert.equal(res.body.error, 'Invalid characters in puzzle');
+                assert.isObject(res.body);
+                assert.property(res.body, 'error');
+                //      assert.equal(res.body.valid, false);
+                //      assert.isArray(res.body.conflict);
+                //    assert.isAbove(res.body.conflict.length, 1);
+                assert.equal(res.body.error, "Invalid characters in puzzle");
                 done();
-            });
-    });
-    test('Check a puzzle placement with incorrect length: POST request to /api/check', function (done) {
+            })
+    })
+
+    //Functional Test #12-Check a puzzle placement with incorrect length: POST request to api/check.
+
+    test('#12-Check a puzzle placement with incorrect length: POST request to api/check.', (done) => {
         chai
             .request(server)
             .post('/api/check')
             .send({
-                puzzle: '1.5..2.84..63.12.7.2..5..h..9..1..8.2.3674.3.7.2..9.47...8..1..16....926914.37.',
-                coordinate: 'A2',
-                value: '3',
+                puzzle: validPuzzle.slice(0, -1),
+                coordinate: 'B2',
+                value: '1'
             })
-            .end(function (err, res) {
+            .end((err, res) => {
                 assert.equal(res.status, 200);
-                assert.equal(
-                    res.body.error,
-                    'Expected puzzle to be 81 characters long'
-                );
+                assert.isObject(res.body);
+                assert.property(res.body, 'error');
+                //      assert.equal(res.body.valid, false);
+                //      assert.isArray(res.body.conflict);
+                //    assert.isAbove(res.body.conflict.length, 1);
+                assert.equal(res.body.error, "Expected puzzle to be 81 characters long");
                 done();
-            });
-    });
-    test('Check a puzzle placement with invalid placement coordinate: POST request to /api/check', function (done) {
+            })
+    })
+
+
+    //Functional Test #13-Check a puzzle placement with invalid placement coordinate: POST request to /api/check
+
+    test('#13-Check a puzzle placement with invalid placement coordinate: POST request to /api/check', (done) => {
         chai
             .request(server)
             .post('/api/check')
             .send({
                 puzzle: validPuzzle,
-                coordinate: 'L2',
-                value: '3'
+                coordinate: 'J2',
+                value: '1'
             })
-            .end(function (err, res) {
+            .end((err, res) => {
                 assert.equal(res.status, 200);
-                assert.equal(res.body.error, 'Invalid coordinate');
+                assert.isObject(res.body);
+                assert.property(res.body, 'error');
+                //      assert.equal(res.body.valid, false);
+                //      assert.isArray(res.body.conflict);
+                //    assert.isAbove(res.body.conflict.length, 1);
+                assert.equal(res.body.error, "Invalid coordinate");
                 done();
-            });
-    });
-    test('Check a puzzle placement with invalid placement value: POST request to /api/check', function (done) {
+            })
+    })
+
+
+    //Functional Test #14-Check a puzzle placement with invalid placement value: POST request to /api/check
+
+    test('#14-Check a puzzle placement with invalid placement value: POST request to /api/check', (done) => {
         chai
             .request(server)
             .post('/api/check')
             .send({
                 puzzle: validPuzzle,
-                coordinate: 'A2',
-                value: 'g'
+                coordinate: 'B2',
+                value: '11'
             })
-            .end(function (err, res) {
+            .end((err, res) => {
                 assert.equal(res.status, 200);
-                assert.equal(res.body.error, 'Invalid value');
+                assert.isObject(res.body);
+                assert.equal(res.body.error, "Invalid value");
                 done();
-            });
-    });
+            })
+
+    })
+
+
+
+
+
+
+
 });

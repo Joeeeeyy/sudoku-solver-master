@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const bodyParser = require('body-parser');
+// const bodyParser = require('body-parser');
 const expect = require('chai').expect;
 const cors = require('cors');
 
@@ -15,8 +15,8 @@ app.use(cors({
   origin: '*'
 })); //For FCC testing purposes only
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({
+app.use(express.json());
+app.use(express.urlencoded({
   extended: true
 }));
 

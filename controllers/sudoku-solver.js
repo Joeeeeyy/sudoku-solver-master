@@ -1,4 +1,6 @@
 class SudokuSolver {
+
+  // valiation tests in api.js
   validate(puzzleString) {}
 
   letterToNumber(row) {
@@ -29,9 +31,14 @@ class SudokuSolver {
   checkRowPlacement(puzzleString, row, column, value) {
     let grid = this.transform(puzzleString);
     row = this.letterToNumber(row);
+    if (grid[row - 1][column - 1] == value) {
+      return true;
+    }
+
     if (grid[row - 1][column - 1] !== 0) {
       return false;
     }
+
     for (let i = 0; i < 9; i++) {
       if (grid[row - 1][i] == value) {
         return false;
@@ -43,9 +50,14 @@ class SudokuSolver {
   checkColPlacement(puzzleString, row, column, value) {
     let grid = this.transform(puzzleString);
     row = this.letterToNumber(row);
+    if (grid[row - 1][column - 1] == value) {
+      return true;
+    }
+
     if (grid[row - 1][column - 1] !== 0) {
       return false;
     }
+
     for (let i = 0; i < 9; i++) {
       if (grid[i][column - 1] == value) {
         return false;
@@ -54,26 +66,35 @@ class SudokuSolver {
     return true;
   }
 
-  checkRegionPlacement(puzzleString, row, col, value) {
+
+  checkRegionPlacement(puzzleString, row, column, value) {
     let grid = this.transform(puzzleString);
     row = this.letterToNumber(row);
-    if (grid[row - 1][col - 1] !== 0) {
+    if (grid[row - 1][column - 1] == value) {
+      return true;
+    }
+
+    if (grid[row - 1][column - 1] !== 0) {
       return false;
     }
-    let startRow = row - (row % 3),
-      startCol = col - (col % 3);
+
+    let startRow = row - (row % 3);
+    let startCol = column - (column % 3);
+
     for (let i = 0; i < 3; i++)
       for (let j = 0; j < 3; j++)
         if (grid[i + startRow][j + startCol] == value) return false;
     return true;
   }
 
+
+  // Sudoku solver backtracking refernce:
+  // https://www.geeksforgeeks.org/sudoku-backtracking-7/
   solveSudoku(grid, row, col) {
-    const N = 9;
 
-    if (row == N - 1 && col == N) return grid;
+    if (row == 9 - 1 && col == 9) return grid;
 
-    if (col == N) {
+    if (col == 9) {
       row++;
       col = 0;
     }
@@ -83,10 +104,8 @@ class SudokuSolver {
     for (let num = 1; num < 10; num++) {
       if (this.isSafe(grid, row, col, num)) {
         grid[row][col] = num;
-
         if (this.solveSudoku(grid, row, col + 1)) return grid;
       }
-
       grid[row][col] = 0;
     }
     return false;
@@ -97,15 +116,16 @@ class SudokuSolver {
     for (let x = 0; x <= 8; x++)
       if (grid[row][x] == num) return false;
 
+
     for (let x = 0; x <= 8; x++)
       if (grid[x][col] == num) return false;
 
-      let startRow = row - (row % 3),
-      startCol = col - (col % 3);
+    let startRow = row - row % 3;
+    let startCol = col - col % 3;
+
     for (let i = 0; i < 3; i++)
       for (let j = 0; j < 3; j++)
         if (grid[i + startRow][j + startCol] == num) return false;
-
     return true;
   }
 
@@ -119,14 +139,17 @@ class SudokuSolver {
       [0, 0, 0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0]
     ];
+
     let row = -1;
     let col = 0;
+
     for (let i = 0; i < puzzleString.length; i++) {
       if (i % 9 == 0) {
         row++;
       }
+
       if (col % 9 == 0) {
         col = 0;
       }
@@ -145,18 +168,23 @@ class SudokuSolver {
     if (puzzleString.length != 81) {
       return false;
     }
+
     if (/[^0-9.]/g.test(puzzleString)) {
       return false;
     }
+
     let grid = this.transform(puzzleString);
     let solved = this.solveSudoku(grid, 0, 0);
+
     if (!solved) {
       return false;
     }
+
     let solvedString = this.transformBack(solved);
-    console.log('solvedString :>> ', solvedString);
+    console.log('solvedString:>>', solvedString);
     return solvedString;
   }
+
 }
 
 module.exports = SudokuSolver;
